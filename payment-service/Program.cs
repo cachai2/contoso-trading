@@ -41,7 +41,7 @@ if (!string.IsNullOrEmpty(dtEndpoint))
 
 var app = builder.Build();
 
-var dbConn = Environment.GetEnvironmentVariable("DB_CONNECTION_URL") ?? "";
+var dbConn = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "";
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment-service" }));
 
@@ -72,4 +72,3 @@ app.MapPost("/payments/process", async () =>
 });
 
 app.Run();
-// trigger webhook
