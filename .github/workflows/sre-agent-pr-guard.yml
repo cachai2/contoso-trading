@@ -1,3 +1,13 @@
+# Sample GitHub Actions workflow for your application repo.
+# This sends PR events to the SRE Agent via the Logic App webhook bridge,
+# which triggers the deployment-guard-analysis skill.
+#
+# Setup:
+#   1. Copy this file to your app repo: .github/workflows/sre-agent-pr-guard.yml
+#   2. Add a repo secret SRE_AGENT_WEBHOOK_URL with the Logic App trigger URL
+#      (find it in the Azure portal under the Logic App's trigger settings,
+#       or run: az resource show ... to get the callback URL)
+
 name: SRE Agent — PR Deployment Guard
 
 on:
