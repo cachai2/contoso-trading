@@ -42,6 +42,9 @@ if (!string.IsNullOrEmpty(dtEndpoint))
 var app = builder.Build();
 
 var dbConn = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "";
+var poolLimit = Environment.GetEnvironmentVariable("POOL_LIMIT");
+if (!string.IsNullOrEmpty(dbConn) && !string.IsNullOrEmpty(poolLimit))
+    dbConn += $";Maximum Pool Size={poolLimit}";
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment-service" }));
 
