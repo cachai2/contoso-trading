@@ -88,6 +88,6 @@ resource peDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@202
   }
 }
 
-output connStr string = 'Host=${server.properties.fullyQualifiedDomainName};Database=tradingdb;Username=appadmin;Password=Tr@ding${uniqueString(suffix)}!'
+output connStr string = 'Host=${server.properties.fullyQualifiedDomainName};Database=tradingdb;Username=appadmin;Password=Tr@ding${uniqueString(suffix)}!;Ssl Mode=Require;Trust Server Certificate=true'
 output serverName string = server.name
 output serverFqdn string = server.properties.fullyQualifiedDomainName
