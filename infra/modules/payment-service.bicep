@@ -36,7 +36,12 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
           resources: { cpu: json('0.5'), memory: '1Gi' }
           env: concat([
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: aiConnStr }
+            // CRITICAL: DATABASE_URL MUST use secretRef to db-conn.
+            // If this is removed or overridden to plaintext, payment-svc enters
+            // silent mock mode — bookings appear to succeed but are NOT persisted.
+            // See INC0010009 (2026-06-08) for the incident caused by this.
             { name: 'DATABASE_URL', secretRef: 'db-conn' }
+            { name: 'POOL_LIMIT', value: '10' }
           ], dtEnvVars)
         }
       ]

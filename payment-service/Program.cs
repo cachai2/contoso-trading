@@ -40,10 +40,24 @@ if (!string.IsNullOrEmpty(dtEndpoint))
 }
 
 var app = builder.Build();
+var logger = app.Logger;
 
+// CRITICAL: DATABASE_URL must be a secretRef pointing to db-conn secret.
+// If missing/empty, the service falls into MOCK MODE — a silent data integrity failure
+// where bookings appear to succeed but are never persisted to PostgreSQL.
 var dbConn = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "";
+var poolLimit = Environment.GetEnvironmentVariable("POOL_LIMIT");
+if (!string.IsNullOrEmpty(dbConn) && !string.IsNullOrEmpty(poolLimit))
+    dbConn += $";Maximum Pool Size={poolLimit}";
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment-service" }));
+var dbMode = string.IsNullOrEmpty(dbConn) ? "mock" : "database";
+if (dbMode == "mock")
+    logger.LogWarning("PAYMENT-SERVICE STARTING IN MOCK MODE — DATABASE_URL is not set. " +
+        "Bookings will NOT be persisted. This is a DATA INTEGRITY risk in production.");
+else
+    logger.LogInformation("Payment-service starting in database mode. Pool limit: {PoolLimit}", poolLimit ?? "default");
+
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "payment-service", dataMode = dbMode }));
 
 app.MapGet("/payments", async () =>
 {
