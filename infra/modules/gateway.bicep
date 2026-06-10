@@ -41,8 +41,71 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
           ], dtEnvVars)
         }
       ]
-      scale: { minReplicas: 1, maxReplicas: 3 }
+      scale: {
+        minReplicas: 2
+        maxReplicas: 3
+        rules: [
+          {
+            name: 'http-scaling'
+            http: {
+              metadata: {
+                concurrentRequests: '15'
+              }
+            }
+          }
+        ]
+      }
     }
+  }
+}
+
+// ── Action Group for gateway alerts ──
+
+resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
+  name: 'sre-workshop-ag'
+  location: 'global'
+  tags: tags
+  properties: {
+    groupShortName: 'sre-ag'
+    enabled: true
+  }
+}
+
+// ── Gateway Latency Alert (ResponseTime P95 > 2000ms) ──
+
+resource latencyAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
+  name: 'High-Latency-Gateway'
+  location: 'global'
+  tags: tags
+  properties: {
+    description: 'Gateway latency exceeded SLO — P95 response time above 2 seconds'
+    severity: 2
+    enabled: true
+    evaluationFrequency: 'PT1M'
+    windowSize: 'PT5M'
+    autoMitigate: true
+    scopes: [
+      app.id
+    ]
+    criteria: {
+      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      allOf: [
+        {
+          name: 'high-p95-latency'
+          metricName: 'ResponseTime'
+          metricNamespace: 'Microsoft.App/containerApps'
+          operator: 'GreaterThan'
+          threshold: 2000
+          timeAggregation: 'Average'
+          criterionType: 'StaticThresholdCriterion'
+        }
+      ]
+    }
+    actions: [
+      {
+        actionGroupId: actionGroup.id
+      }
+    ]
   }
 }
 
